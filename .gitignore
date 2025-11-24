@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables (IMPORTANT: Never commit these!)
+.env
+.env.local
+.env.development
+.env.production
+standalone/.env
+**/.env
+
+# Build outputs
+dist/
+build/
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Database files (if any local DB files exist)
+*.db
+*.sqlite
+*.sqlite3
+
+# Package manager locks (optional - some teams commit these)
+# package-lock.json
+# yarn.lock
+

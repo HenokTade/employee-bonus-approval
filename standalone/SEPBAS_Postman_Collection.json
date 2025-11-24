@@ -1,0 +1,481 @@
+{
+  "info": {
+    "name": "SEPBAS API",
+    "description": "Secure Employee Promotion & Bonus Approval System - Complete API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "ADMIN_REGISTRATION_TOKEN",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@aastu.edu.et\",\n  \"password\": \"Test@123\",\n  \"name\": \"New User\",\n  \"role\": \"employee\",\n  \"department\": \"Engineering\",\n  \"adminToken\": \"{{adminToken}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Employee - No MFA)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.environment.set('accessToken', jsonData.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employee1@aastu.edu.et\",\n  \"password\": \"Test@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Manager - With MFA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.manager@aastu.edu.et\",\n  \"password\": \"Test@123\",\n  \"mfaToken\": \"000000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Nominations",
+      "item": [
+        {
+          "name": "Create Nomination (Bonus)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/nominations",
+              "host": ["{{baseUrl}}"],
+              "path": ["nominations"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": 5,\n  \"type\": \"bonus\",\n  \"bonusAmount\": 25000,\n  \"justification\": \"Excellent performance in Q4 2024. Completed all projects ahead of schedule.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Nomination (Promotion)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/nominations",
+              "host": ["{{baseUrl}}"],
+              "path": ["nominations"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": 5,\n  \"type\": \"promotion\",\n  \"promotionTo\": \"Senior Software Engineer\",\n  \"justification\": \"Demonstrated exceptional technical leadership and mentorship abilities.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Nominations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/nominations",
+              "host": ["{{baseUrl}}"],
+              "path": ["nominations"]
+            }
+          }
+        },
+        {
+          "name": "Approve Nomination",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/nominations/1/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["nominations", "1", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Nomination",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/nominations/1/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["nominations", "1", "reject"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Insufficient justification provided. Please provide more details about specific achievements.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Grant DAC Permission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/nominations/1/grant-permission",
+              "host": ["{{baseUrl}}"],
+              "path": ["nominations", "1", "grant-permission"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetUserId\": 7,\n  \"permission\": \"view\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Update User - Grant After Hours Access",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/5/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "5", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"afterHoursAccess\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Update User - Change Clearance Level (MAC)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/5/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "5", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clearanceLevel\": 3\n}"
+            }
+          }
+        },
+        {
+          "name": "Update User - Change Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/5/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "5", "update"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"manager\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/logs",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "logs"]
+            }
+          }
+        },
+        {
+          "name": "Create Backup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/backup",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "backup"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Testing & Security",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Test Failed Login (Wrong Password)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employee1@aastu.edu.et\",\n  \"password\": \"WrongPassword\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Test Weak Password (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"weakpass@aastu.edu.et\",\n  \"password\": \"weak\",\n  \"name\": \"Weak Password User\",\n  \"role\": \"employee\",\n  \"department\": \"IT\",\n  \"adminToken\": \"{{adminToken}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Test Unauthorized Access (No Token)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/nominations",
+              "host": ["{{baseUrl}}"],
+              "path": ["nominations"]
+            }
+          }
+        },
+        {
+          "name": "Test RBAC - Employee Access Admin (Should Fail)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "description": "Use employee token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

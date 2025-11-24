@@ -1,0 +1,387 @@
+SEPBAS Standalone - Complete Folder Structure
+=====================================================
+
+standalone/
+│
+├── 📄 server.js                          ⭐ MAIN FILE - Express backend server
+│   └── Contains: All API endpoints, security logic, access control
+│
+├── 📄 package.json                       Dependencies and scripts
+│   ├── express: Web framework
+│   ├── pg: PostgreSQL client
+│   ├── bcryptjs: Password hashing
+│   ├── jsonwebtoken: JWT authentication
+│   ├── speakeasy: MFA/TOTP
+│   ├── qrcode: QR code generation
+│   ├── helmet: Security headers
+│   └── cors: Cross-origin resource sharing
+│
+├── 📄 database-schema.sql                ⭐ Database schema
+│   ├── users table (with RBAC, MAC, RuBAC fields)
+│   ├── nominations table (with MAC, DAC fields)
+│   ├── audit_logs table
+│   ├── Indexes for performance
+│   ├── Triggers for auto-updates
+│   └── Sample data SQL
+│
+├── 📄 setup-database.js                  ⭐ Database initialization script
+│   └── Creates tables and inserts sample users
+│
+├── 📄 .env.example                       Environment configuration template
+│   ├── Database credentials
+│   ├── JWT secret
+│   ├── Server port
+│   └── Admin token
+│
+├── 📘 README.md                          ⭐ Complete documentation (60+ pages)
+│   ├── Installation instructions
+│   ├── Feature documentation
+│   ├── API reference
+│   ├── Troubleshooting guide
+│   └── Academic report guidelines
+│
+├── 📘 SETUP_INSTRUCTIONS.txt             Step-by-step beginner guide
+│   ├── PostgreSQL installation
+│   ├── Node.js setup
+│   ├── Project configuration
+│   ├── Database initialization
+│   └── Running the server
+│
+├── 📘 TESTING_GUIDE.md                   Comprehensive test scenarios
+│   ├── RBAC testing
+│   ├── MAC testing
+│   ├── DAC testing
+│   ├── RuBAC testing
+│   ├── ABAC testing
+│   ├── Security feature tests
+│   ├── Complete workflow tests
+│   └── Screenshots guide
+│
+├── 📘 PROJECT_SUMMARY.md                 ⭐ Overview and report guide
+│   ├── What's implemented
+│   ├── Code explanations
+│   ├── Academic report structure
+│   ├── Demo script
+│   ├── Grading criteria mapping
+│   └── Success tips
+│
+├── 📘 FOLDER_STRUCTURE.txt               This file - project layout
+│
+├── 📋 SEPBAS_Postman_Collection.json     API testing collection
+│   ├── All endpoints configured
+│   ├── Sample requests
+│   ├── Auto-save tokens
+│   └── Test scenarios
+│
+├── 🔧 test-api.sh                        Automated API testing script
+│   └── Bash script to test all endpoints
+│
+└── 📄 .gitignore                         Git ignore rules
+    └── Excludes node_modules, .env, logs
+
+=====================================================
+How to Use These Files
+=====================================================
+
+START HERE:
+-----------
+1. Read SETUP_INSTRUCTIONS.txt
+   → Follow step-by-step to install and run
+
+2. Run setup-database.js
+   → Creates database and sample users
+
+3. Start server.js
+   → npm start
+
+TESTING:
+--------
+4. Use TESTING_GUIDE.md
+   → Test each security feature
+
+5. Import SEPBAS_Postman_Collection.json
+   → Test API with Postman
+
+6. Run test-api.sh (Linux/Mac)
+   → Automated endpoint testing
+
+DOCUMENTATION:
+--------------
+7. Read README.md
+   → Complete technical documentation
+
+8. Read PROJECT_SUMMARY.md
+   → Report writing guide
+
+9. Check FOLDER_STRUCTURE.txt
+   → Understand project layout
+
+=====================================================
+Key Files Explained
+=====================================================
+
+🔴 CRITICAL FILES (Must Have):
+   • server.js             - The entire backend
+   • database-schema.sql   - Database structure
+   • package.json          - Dependencies
+   • .env (create from .env.example)
+
+🟡 SETUP FILES (Run Once):
+   • setup-database.js     - Initialize DB
+   • .env.example          - Configuration template
+
+🟢 DOCUMENTATION (Reference):
+   • README.md            - Main documentation
+   • SETUP_INSTRUCTIONS.txt - Quick start
+   • TESTING_GUIDE.md     - Testing scenarios
+   • PROJECT_SUMMARY.md   - Report guide
+
+🔵 TESTING TOOLS (Optional):
+   • test-api.sh          - Bash test script
+   • Postman collection   - API testing
+
+=====================================================
+Sample Users Created by setup-database.js
+=====================================================
+
+Email: admin@aastu.edu.et
+   Role: system_admin
+   Password: Test@123
+   MFA: Yes
+   Clearance: Level 3 (Confidential)
+   After-Hours: Yes
+
+Email: hr@aastu.edu.et
+   Role: hr_admin
+   Password: Test@123
+   MFA: Yes
+   Clearance: Level 2 (Internal)
+
+Email: john.manager@aastu.edu.et
+   Role: manager
+   Password: Test@123
+   MFA: Yes
+   Department: Engineering
+
+Email: jane.head@aastu.edu.et
+   Role: dept_head
+   Password: Test@123
+   MFA: Yes
+   Department: Engineering
+   Clearance: Level 2
+
+Email: employee1@aastu.edu.et
+   Role: employee
+   Password: Test@123
+   MFA: No
+   Department: Engineering
+
+Email: employee2@aastu.edu.et
+   Role: employee
+   Password: Test@123
+   MFA: No
+   Department: Engineering
+
+=====================================================
+Database Tables Structure
+=====================================================
+
+users
+├── id (primary key)
+├── email (unique)
+├── name
+├── hashed_password
+├── role (RBAC)
+├── department
+├── clearance_level (MAC: 1-3)
+├── after_hours_access (RuBAC)
+├── mfa_enabled
+├── mfa_secret
+├── failed_login_attempts
+├── locked_until
+├── created_at
+└── updated_at
+
+nominations
+├── id (primary key)
+├── employee_id → users(id)
+├── manager_id → users(id)
+├── department
+├── type (bonus/promotion)
+├── bonus_amount
+├── promotion_to
+├── justification
+├── status (pending_*/approved/rejected)
+├── level1_approved_by → users(id)
+├── level2_approved_by → users(id)
+├── level3_approved_by → users(id)
+├── rejected_by → users(id)
+├── rejection_reason
+├── mac_label (MAC: 1-3)
+├── owner_id → users(id) (DAC)
+├── dac_permissions (JSONB)
+├── created_at
+└── updated_at
+
+audit_logs
+├── id (primary key)
+├── user_id → users(id)
+├── action
+├── details (JSONB)
+├── ip_address
+├── user_agent
+└── timestamp
+
+=====================================================
+API Endpoints Quick Reference
+=====================================================
+
+AUTHENTICATION:
+POST   /api/auth/register        Register new user
+POST   /api/auth/login           Login with credentials
+POST   /api/auth/logout          Logout user
+
+NOMINATIONS:
+POST   /api/nominations          Create nomination
+GET    /api/nominations          Get nominations
+POST   /api/nominations/:id/approve      Approve
+POST   /api/nominations/:id/reject       Reject
+POST   /api/nominations/:id/grant-permission  DAC
+
+ADMIN:
+GET    /api/admin/users          Get all users
+POST   /api/admin/users/:id/update       Update user
+GET    /api/admin/logs           Get audit logs
+POST   /api/admin/backup         Create backup
+
+UTILITY:
+GET    /api/health               Health check
+
+=====================================================
+Access Control Implementation Locations
+=====================================================
+
+RBAC:
+   File: server.js
+   Lines: 167-182 (authorize middleware)
+   Usage: app.get('/api/admin/users', authenticate, authorize('hr_admin', 'system_admin'), ...)
+
+MAC:
+   File: server.js
+   Lines: 78-81 (checkMacClearance function)
+   Usage: if (!checkMacClearance(user.clearance_level, nom.mac_label)) { ... }
+
+DAC:
+   File: server.js
+   Lines: 647-686 (grant-permission endpoint)
+   Database: nominations.dac_permissions (JSONB)
+
+RuBAC:
+   File: server.js
+   Lines: 56-76 (checkTimeBasedAccess function)
+   Usage: if (!checkTimeBasedAccess(user.after_hours_access)) { ... }
+
+ABAC:
+   File: server.js
+   Lines: 83-112 (evaluateAbacPolicy function)
+   Usage: if (!evaluateAbacPolicy(user, resource, action)) { ... }
+
+=====================================================
+Development Workflow
+=====================================================
+
+1. FIRST TIME SETUP:
+   npm install
+   cp .env.example .env
+   [edit .env]
+   npm run setup-db
+   npm start
+
+2. DAILY DEVELOPMENT:
+   npm run dev          (auto-restart on changes)
+   
+3. TESTING:
+   npm start            (in one terminal)
+   ./test-api.sh        (in another terminal)
+   
+4. PRODUCTION:
+   npm start
+   
+5. DATABASE RESET:
+   npm run setup-db     (drops and recreates)
+
+=====================================================
+File Sizes (Approximate)
+=====================================================
+
+server.js                      ~40 KB (880 lines)
+database-schema.sql            ~8 KB
+README.md                      ~35 KB
+TESTING_GUIDE.md              ~20 KB
+PROJECT_SUMMARY.md            ~18 KB
+SETUP_INSTRUCTIONS.txt        ~6 KB
+setup-database.js             ~5 KB
+package.json                  ~1 KB
+.env.example                  ~1 KB
+
+TOTAL PROJECT SIZE: ~150 KB (excluding node_modules)
+With node_modules: ~50 MB
+
+=====================================================
+System Requirements
+=====================================================
+
+Software:
+   • Node.js v16+ (LTS recommended)
+   • PostgreSQL 12+
+   • npm or yarn
+   • Git (optional)
+
+Operating System:
+   • Windows 10/11
+   • macOS 10.15+
+   • Linux (Ubuntu 20.04+, Fedora, etc.)
+
+Hardware (Minimum):
+   • CPU: 2 cores
+   • RAM: 4 GB
+   • Disk: 100 MB free space
+
+Hardware (Recommended):
+   • CPU: 4+ cores
+   • RAM: 8+ GB
+   • Disk: 500 MB free space
+
+=====================================================
+Next Steps
+=====================================================
+
+✅ You have all the files!
+
+Now:
+1. Follow SETUP_INSTRUCTIONS.txt to install
+2. Run the server successfully
+3. Test with TESTING_GUIDE.md
+4. Write your report using PROJECT_SUMMARY.md
+5. Practice your demo
+6. Submit and present!
+
+Good luck! 🎓
+
+=====================================================
+Questions or Issues?
+=====================================================
+
+1. Check README.md troubleshooting section
+2. Review TESTING_GUIDE.md for examples
+3. Consult your instructor
+4. Check server logs for error messages
+5. Verify PostgreSQL is running
+
+Common Issues:
+   • Database connection failed → Check .env
+   • Port 3000 in use → Change PORT in .env
+   • npm install fails → Clear cache, retry
+   • MFA not working → Sync phone time
+
+=====================================================
