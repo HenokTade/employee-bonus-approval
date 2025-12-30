@@ -45,9 +45,37 @@ export function Login({ onLogin }: LoginProps) {
         }
       );
 
-      const data = await response.json();
+      // Parse response safely — some middleware (rate limiter) may return plain text
+      // Use clone() so if JSON parsing fails we can fall back to text.
+      let data: any;
+      const respClone = response.clone();
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        const text = (await respClone.text()) || '';
+        data = { error: text || `HTTP ${response.status}` };
+      }
 
       if (!response.ok) {
+        // Provide a more helpful message when rate-limited (429)
+        if (response.status === 429) {
+          const retryHeader = response.headers.get('Retry-After');
+          const retryFromBody = data && data.retryAfterSeconds ? Number(data.retryAfterSeconds) : null;
+          const retrySeconds = retryHeader ? Number(retryHeader) : retryFromBody;
+          let retryMsg = 'Too many login attempts. Please try again later.';
+          if (retrySeconds && !isNaN(retrySeconds)) {
+            if (retrySeconds < 60) {
+              retryMsg = `Too many attempts — try again in ${retrySeconds} seconds.`;
+            } else {
+              const minutes = Math.ceil(retrySeconds / 60);
+              retryMsg = `Too many attempts — try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`;
+            }
+          }
+          setError(retryMsg);
+          setLoading(false);
+          return;
+        }
+
         setError(data.error || 'Login failed');
         setLoading(false);
         return;
@@ -67,10 +95,27 @@ export function Login({ onLogin }: LoginProps) {
 
       if (data.success) {
         onLogin(data.accessToken, data.user);
+      } else if (data.mfaRequired) {
+        setShowMfa(true);
+        setTempUserId(data.userId);
+        toast.info('MFA is required. Please enter your 6-digit code from Google Authenticator');
+        setLoading(false);
+        return;
+      } else {
+        setError(data.error || 'Login failed');
+        setLoading(false);
+        return;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
-      setError('Network error. Please try again.');
+      // Show more specific error messages
+      if (err.message && err.message.includes('fetch')) {
+        setError('Cannot connect to server. Please check if the backend is running on http://localhost:3000');
+      } else if (err.message) {
+        setError(`Error: ${err.message}`);
+      } else {
+        setError('Network error. Please check browser console (F12) for details.');
+      }
     } finally {
       setLoading(false);
     }

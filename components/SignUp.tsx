@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -11,20 +11,73 @@ interface SignUpProps {
   onSuccess: () => void;
 }
 
+interface CaptchaData {
+  captchaId: string;
+  question: string;
+}
+
 export function SignUp({ onBack, onSuccess }: SignUpProps) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     name: '',
+    phone: '',
     role: 'employee' as 'employee' | 'manager' | 'dept_head' | 'hr_admin' | 'system_admin',
     department: '',
     adminToken: '',
+    captchaAnswer: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [captcha, setCaptcha] = useState<CaptchaData | null>(null);
+  const [loadingCaptcha, setLoadingCaptcha] = useState(false);
+  const [departments, setDepartments] = useState<string[]>([]);
+
+  // Fetch CAPTCHA and Departments on component mount
+  useEffect(() => {
+    fetchCaptcha();
+    fetchDepartments();
+  }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const { API_BASE_URL } = await import('../config/api');
+      const response = await fetch(`${API_BASE_URL}/departments`);
+      if (response.ok) {
+        const data = await response.json();
+        setDepartments(data.departments || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch departments:', err);
+      // Fallback to defaults if API fails
+      setDepartments(['Electrical and Mechanical', 'Civil and Architecture', 'Social Engineering']);
+    }
+  };
+
+  const fetchCaptcha = async () => {
+    setLoadingCaptcha(true);
+    try {
+      const { API_BASE_URL } = await import('../config/api');
+      const response = await fetch(`${API_BASE_URL}/auth/captcha`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch CAPTCHA: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setCaptcha({ captchaId: data.captchaId, question: data.question });
+      setError(''); // Clear any previous errors
+    } catch (err) {
+      console.error('CAPTCHA fetch error:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Failed to load CAPTCHA';
+      setError(`CAPTCHA Error: ${errorMsg}. Please check if backend is running on http://localhost:3000`);
+    } finally {
+      setLoadingCaptcha(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +104,17 @@ export function SignUp({ onBack, onSuccess }: SignUpProps) {
       return;
     }
 
+    if (!captcha || !formData.captchaAnswer) {
+      setError('Please solve the CAPTCHA');
+      return;
+    }
+
+    // Validate phone number format (optional but if provided, should be valid)
+    if (formData.phone && !/^\+?[1-9]\d{1,14}$/.test(formData.phone.replace(/\s/g, ''))) {
+      setError('Please enter a valid phone number (e.g., +251912345678)');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -64,16 +128,29 @@ export function SignUp({ onBack, onSuccess }: SignUpProps) {
           email: formData.email,
           password: formData.password,
           name: formData.name,
+          phone: formData.phone || undefined,
           role: formData.role,
           department: formData.department,
           adminToken: formData.adminToken,
+          captchaId: captcha.captchaId,
+          captchaAnswer: formData.captchaAnswer,
         }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
+        setError(`Server error: ${response.status} ${response.statusText}`);
+        setLoading(false);
+        return;
+      }
 
       if (!response.ok) {
-        setError(data.error || 'Registration failed');
+        // Show detailed error message
+        const errorMsg = data.error || data.details?.[0]?.msg || 'Registration failed';
+        setError(errorMsg);
         setLoading(false);
         return;
       }
@@ -91,7 +168,14 @@ export function SignUp({ onBack, onSuccess }: SignUpProps) {
       setLoading(false);
     } catch (err) {
       console.error('Registration error:', err);
-      setError('Network error. Please try again.');
+      // Show more specific error messages
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Cannot connect to server. Please check if the backend is running on http://localhost:3000');
+      } else if (err instanceof Error) {
+        setError(`Error: ${err.message}`);
+      } else {
+        setError('Network error. Please try again. Check browser console for details.');
+      }
       setLoading(false);
     }
   };
@@ -103,7 +187,7 @@ export function SignUp({ onBack, onSuccess }: SignUpProps) {
           <CardHeader>
             <CardTitle className="text-green-600">Registration Successful!</CardTitle>
             <CardDescription>
-              {qrCodeUrl 
+              {qrCodeUrl
                 ? 'User has been registered. Please scan the QR code with Google Authenticator for MFA setup.'
                 : 'User has been registered successfully.'}
             </CardDescription>
@@ -116,7 +200,7 @@ export function SignUp({ onBack, onSuccess }: SignUpProps) {
             )}
             <div className="space-y-2">
               <p className="text-sm text-slate-600">
-                {qrCodeUrl 
+                {qrCodeUrl
                   ? 'Scan this QR code with Google Authenticator app on your phone, then you can login.'
                   : 'You can now login with the registered credentials.'}
               </p>
@@ -173,6 +257,21 @@ export function SignUp({ onBack, onSuccess }: SignUpProps) {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number (Optional)</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+251912345678"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                disabled={loading}
+              />
+              <p className="text-xs text-slate-500">
+                Include country code (e.g., +251 for Ethiopia)
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -221,15 +320,19 @@ export function SignUp({ onBack, onSuccess }: SignUpProps) {
 
             <div className="space-y-2">
               <Label htmlFor="department">Department</Label>
-              <Input
+              <select
                 id="department"
-                type="text"
-                placeholder="Engineering, HR, Finance, etc."
+                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.department}
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                 required
                 disabled={loading}
-              />
+              >
+                <option value="">Select Department</option>
+                {departments.map((dept) => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">
@@ -246,6 +349,42 @@ export function SignUp({ onBack, onSuccess }: SignUpProps) {
               <p className="text-xs text-slate-500">
                 Required token for user registration. Contact system administrator.
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="captcha">CAPTCHA Verification</Label>
+              {loadingCaptcha ? (
+                <p className="text-sm text-slate-500">Loading CAPTCHA...</p>
+              ) : captcha ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-md">
+                    <span className="text-lg font-semibold">{captcha.question}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={fetchCaptcha}
+                      className="text-xs"
+                      disabled={loading}
+                    >
+                      Refresh
+                    </Button>
+                  </div>
+                  <Input
+                    id="captchaAnswer"
+                    type="number"
+                    placeholder="Enter answer"
+                    value={formData.captchaAnswer}
+                    onChange={(e) => setFormData({ ...formData, captchaAnswer: e.target.value })}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              ) : (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-600">Failed to load CAPTCHA. Please refresh the page.</p>
+                </div>
+              )}
             </div>
 
             {error && (

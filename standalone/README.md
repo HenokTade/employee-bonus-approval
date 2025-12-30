@@ -286,6 +286,26 @@ You should see:
 
 ---
 
+## Configuration (Rate limiting)
+
+To make login rate limiting configurable for testing and development we added environment options:
+
+- `LOGIN_RATE_WINDOW_MINUTES` — window size in minutes (default 15)
+- `LOGIN_RATE_MAX` — maximum login attempts inside the window (default 5 in production; default 1000 in development to avoid accidental lockouts)
+- `ENABLE_LOGIN_RATELIMIT` — set to `false` to disable the login rate limiter entirely for development/testing
+
+Example (PowerShell):
+
+```powershell
+$env:LOGIN_RATE_MAX = 50
+$env:LOGIN_RATE_WINDOW_MINUTES = 10
+$env:ENABLE_LOGIN_RATELIMIT = 'false'   # disable while running tests
+npm run dev
+```
+
+When a 429 is returned the server will set a `Retry-After` HTTP header (seconds) and include `retryAfterSeconds` in the JSON response so clients can present a clear retry message to users.
+
+
 ## 🧪 Testing the API
 
 ### Using cURL

@@ -297,6 +297,8 @@ curl -X POST http://localhost:3000/api/auth/register \
 
 ### Account Lockout Testing
 
+> Note: A network-level rate limiter protects the login endpoint as well. If you're running rapid automated tests you may hit the endpoint rate-limit (HTTP 429) before account lockout triggers. To avoid this while testing you can either increase `LOGIN_RATE_MAX` / shorten `LOGIN_RATE_WINDOW_MINUTES`, or disable the login rate limiter by setting `ENABLE_LOGIN_RATELIMIT=false`.
+
 ```bash
 # Make 5 failed login attempts
 for i in {1..5}; do
@@ -309,6 +311,21 @@ done
 
 # Expected: After 5 attempts, account locked for 15 minutes
 # Message: "Account locked due to too many failed attempts. Try again in 15 minutes."
+```
+
+### List Department Employees (Manager)
+
+Managers can list employees in their own department. HR/Admin can list any department.
+
+```bash
+# Manager (department = 'Engineering')
+curl -X GET "http://localhost:3000/api/departments/Engineering/employees" \
+  -H "Authorization: Bearer $MANAGER_TOKEN"
+
+# HR can list other departments
+curl -X GET "http://localhost:3000/api/departments/Sales/employees" \
+  -H "Authorization: Bearer $HR_TOKEN"
+```
 ```
 
 ### MFA Testing

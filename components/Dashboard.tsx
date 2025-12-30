@@ -129,8 +129,20 @@ export function Dashboard({ user, accessToken }: DashboardProps) {
     setLoadingUsers(true);
     try {
       const { API_BASE_URL } = await import('../config/api');
-      const response = await fetch(
-        `${API_BASE_URL}/admin/users`,
+      
+      // Debug: Log user info
+      console.log('Fetching users for:', {
+        role: user.role,
+        department: user.department,
+        userId: user.id
+      });
+      
+      // If manager, request department employees explicitly (backend enforces permissions)
+      const url = user.role === 'manager'
+        ? `${API_BASE_URL}/departments/${encodeURIComponent(user.department)}/employees`
+        : `${API_BASE_URL}/admin/users`;
+
+      const response = await fetch(url,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -140,6 +152,8 @@ export function Dashboard({ user, accessToken }: DashboardProps) {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Received users from API:', data.users.length);
+        
         // Transform snake_case to camelCase
         const transformed = data.users.map((u: any) => ({
           id: u.id,
@@ -152,14 +166,25 @@ export function Dashboard({ user, accessToken }: DashboardProps) {
           mfaEnabled: u.mfa_enabled,
           createdAt: u.created_at,
         }));
+        
+        console.log('All transformed users:', transformed);
+        console.log('Manager department:', user.department);
+        
+        // Server returns users already restricted; pick employees only
         const employees = transformed.filter((u: any) => u.role === 'employee');
         setAllUsers(employees);
         
         if (employees.length === 0) {
-          console.warn('No employees found in the system');
-          toast.warning('No employees found in the system. Please contact an administrator.');
+          if (user.role === 'manager') {
+            console.warn(`No employees found in department: ${user.department}`);
+            console.warn('Available departments in system:', [...new Set(transformed.map((u: any) => u.department))]);
+            toast.warning(`No employees found in your department (${user.department}). Please contact an administrator.`);
+          } else {
+            console.warn('No employees found in the system');
+            toast.warning('No employees found in the system. Please contact an administrator.');
+          }
         } else {
-          console.log(`Loaded ${employees.length} employees for nomination`);
+          console.log(`Loaded ${employees.length} employees for nomination${user.role === 'manager' ? ` from department: ${user.department}` : ''}`);
         }
       } else {
         const error = await response.json();
@@ -200,8 +225,8 @@ export function Dashboard({ user, accessToken }: DashboardProps) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`,
           },
-          body: JSON.stringify({
-            employeeId: selectedEmployee,
+            body: JSON.stringify({
+            employeeId: Number(selectedEmployee),
             type: nominationType,
             bonusAmount: nominationType === 'bonus' ? parseFloat(bonusAmount) : 0,
             promotionTo: nominationType === 'promotion' ? promotionTo : null,
@@ -430,7 +455,7 @@ export function Dashboard({ user, accessToken }: DashboardProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {allUsers.map((u) => (
-                          <SelectItem key={u.id} value={u.id}>
+                          <SelectItem key={u.id} value={String(u.id)}>
                             {u.name} - {u.email}
                           </SelectItem>
                         ))}

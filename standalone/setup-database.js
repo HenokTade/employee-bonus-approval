@@ -49,7 +49,7 @@ async function setupDatabase() {
                 email: 'hr@aastu.edu.et',
                 name: 'HR Manager',
                 role: 'hr_admin',
-                department: 'HR',
+                department: 'Social Engineering',
                 clearanceLevel: 2,
                 afterHoursAccess: false,
                 mfaEnabled: true
@@ -58,7 +58,7 @@ async function setupDatabase() {
                 email: 'john.manager@aastu.edu.et',
                 name: 'John Manager',
                 role: 'manager',
-                department: 'Engineering',
+                department: 'Electrical and Mechanical',
                 clearanceLevel: 1,
                 afterHoursAccess: false,
                 mfaEnabled: true
@@ -67,7 +67,7 @@ async function setupDatabase() {
                 email: 'jane.head@aastu.edu.et',
                 name: 'Jane Head',
                 role: 'dept_head',
-                department: 'Engineering',
+                department: 'Electrical and Mechanical',
                 clearanceLevel: 2,
                 afterHoursAccess: false,
                 mfaEnabled: true
@@ -76,7 +76,7 @@ async function setupDatabase() {
                 email: 'employee1@aastu.edu.et',
                 name: 'Alice Employee',
                 role: 'employee',
-                department: 'Engineering',
+                department: 'Electrical and Mechanical',
                 clearanceLevel: 1,
                 afterHoursAccess: false,
                 mfaEnabled: false
@@ -85,7 +85,7 @@ async function setupDatabase() {
                 email: 'employee2@aastu.edu.et',
                 name: 'Bob Employee',
                 role: 'employee',
-                department: 'Engineering',
+                department: 'Electrical and Mechanical',
                 clearanceLevel: 1,
                 afterHoursAccess: false,
                 mfaEnabled: false
@@ -94,7 +94,7 @@ async function setupDatabase() {
                 email: 'sales.manager@aastu.edu.et',
                 name: 'Sarah Sales',
                 role: 'manager',
-                department: 'Sales',
+                department: 'Civil and Architecture',
                 clearanceLevel: 1,
                 afterHoursAccess: false,
                 mfaEnabled: true

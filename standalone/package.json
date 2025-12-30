@@ -54,7 +54,9 @@
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.11.3",
     "qrcode": "^1.5.3",
-    "speakeasy": "^2.0.0"
+    "speakeasy": "^2.0.0",
+    "nodemailer": "^6.9.7",
+    "twilio": "^4.19.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

@@ -1,8 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  // Narrow the content globs to the app source and explicitly exclude node_modules
   content: [
-    "./index.html",
-    "./**/*.{js,ts,jsx,tsx}",
+    './index.html',
+    './App.tsx',
+    './main.tsx',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './components/ui/**/*.{js,ts,jsx,tsx}',
+    './styles/**/*.css',
+    '!./node_modules/**/*',
   ],
   theme: {
     extend: {

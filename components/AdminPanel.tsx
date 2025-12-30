@@ -58,11 +58,28 @@ export function AdminPanel({ user, accessToken }: AdminPanelProps) {
   const [editClearance, setEditClearance] = useState(1);
   const [editAfterHours, setEditAfterHours] = useState(false);
   const [editRole, setEditRole] = useState('');
+  const [departments, setDepartments] = useState<string[]>([]);
 
   useEffect(() => {
     fetchUsers();
     fetchLogs();
+    fetchDepartments();
   }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const { API_BASE_URL } = await import('../config/api');
+      const response = await fetch(`${API_BASE_URL}/departments`);
+      if (response.ok) {
+        const data = await response.json();
+        setDepartments(data.departments || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch departments:', err);
+      // Fallback
+      setDepartments(['Electrical and Mechanical', 'Civil and Architecture', 'Social Engineering']);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -166,7 +183,7 @@ export function AdminPanel({ user, accessToken }: AdminPanelProps) {
       if (response.ok) {
         const data = await response.json();
         toast.success(data.message);
-        
+
         if (data.qrCodeUrl) {
           setQrCodeUrl(data.qrCodeUrl);
         } else {
@@ -235,7 +252,7 @@ export function AdminPanel({ user, accessToken }: AdminPanelProps) {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Download backup as JSON
         const blob = new Blob([JSON.stringify(data.backup, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -244,7 +261,7 @@ export function AdminPanel({ user, accessToken }: AdminPanelProps) {
         a.download = `sepbas-backup-${new Date().toISOString()}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        
+
         toast.success('Backup created successfully');
       } else {
         const error = await response.json();
@@ -431,11 +448,9 @@ export function AdminPanel({ user, accessToken }: AdminPanelProps) {
                             <SelectValue placeholder="Select department" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Engineering">Engineering</SelectItem>
-                            <SelectItem value="Sales">Sales</SelectItem>
-                            <SelectItem value="Marketing">Marketing</SelectItem>
-                            <SelectItem value="HR">HR</SelectItem>
-                            <SelectItem value="Finance">Finance</SelectItem>
+                            {departments.map((dept) => (
+                              <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>

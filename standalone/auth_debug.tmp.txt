@@ -1,0 +1,5 @@
+--- START ---
+Login Status: 200
+Token obtained.
+Protected Status: 401
+Protected Body: {"error":"Invalid authentication token","details":"invalid input syntax for type uuid: \"10\"","type":"error"}
