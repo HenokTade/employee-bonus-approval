@@ -1,3 +1,3 @@
 // API Configuration
-export const API_BASE_URL = 'http://localhost:3000/api';
-
+// Same-origin path: Vite proxies /api to localhost:3000 in dev, vercel.json rewrites /api to the standalone service.
+export const API_BASE_URL = '/api';

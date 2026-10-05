@@ -85,23 +85,34 @@ process.on('SIGINT', async () => {
 app.use(helmet());
 
 // CORS Configuration
-app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        // Allow localhost on any port for development
-        if (origin.match(/^http:\/\/localhost(:\d+)?$/)) {
-            return callback(null, true);
-        }
-        // Allow the configured frontend URL
-        const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
-        if (origin === allowedOrigin) {
-            return callback(null, true);
-        }
-        callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true
-}));
+// Built per request so the origin check can compare against the request host.
+app.use((req, res, next) => {
+    cors({
+        origin: function (origin, callback) {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
+            // Allow localhost on any port for development
+            if (origin.match(/^http:\/\/localhost(:\d+)?$/)) {
+                return callback(null, true);
+            }
+            // Allow the configured frontend URL
+            const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+            if (origin === allowedOrigin) {
+                return callback(null, true);
+            }
+            // Allow same-origin: the SPA and this API share one domain when deployed
+            try {
+                if (new URL(origin).host === req.headers.host) {
+                    return callback(null, true);
+                }
+            } catch (e) {
+                // unparsable origin - rejected below
+            }
+            callback(new Error('Not allowed by CORS'));
+        },
+        credentials: true
+    })(req, res, next);
+});
 
 // Body Parser
 app.use(express.json());
@@ -519,13 +530,14 @@ if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
 /**
  * Send email verification email
  */
-async function sendVerificationEmail(email, token, userId) {
+async function sendVerificationEmail(email, token, userId, requestOrigin) {
     if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
         console.log('⚠️  Email service not configured. Skipping email send.');
         return false;
     }
 
-    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email/${token}`;
+    const appBaseUrl = process.env.FRONTEND_URL || requestOrigin || 'http://localhost:5173';
+    const verificationUrl = `${appBaseUrl}/verify-email/${token}`;
 
     try {
         await emailTransporter.sendMail({
@@ -682,7 +694,7 @@ app.post('/api/auth/register',
 
             // Send verification email if email service is configured
             if (!emailVerified) {
-                await sendVerificationEmail(email, verificationToken, newUser.id);
+                await sendVerificationEmail(email, verificationToken, newUser.id, `${req.protocol}://${req.get('host')}`);
             }
 
             // Generate phone verification code if phone is provided

@@ -110,7 +110,7 @@ export function Login({ onLogin }: LoginProps) {
       console.error('Login error:', err);
       // Show more specific error messages
       if (err.message && err.message.includes('fetch')) {
-        setError('Cannot connect to server. Please check if the backend is running on http://localhost:3000');
+        setError('Cannot connect to server. Please try again later.');
       } else if (err.message) {
         setError(`Error: ${err.message}`);
       } else {

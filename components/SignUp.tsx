@@ -73,7 +73,7 @@ export function SignUp({ onBack, onSuccess }: SignUpProps) {
     } catch (err) {
       console.error('CAPTCHA fetch error:', err);
       const errorMsg = err instanceof Error ? err.message : 'Failed to load CAPTCHA';
-      setError(`CAPTCHA Error: ${errorMsg}. Please check if backend is running on http://localhost:3000`);
+      setError(`CAPTCHA Error: ${errorMsg}. Please try again later.`);
     } finally {
       setLoadingCaptcha(false);
     }
@@ -170,7 +170,7 @@ export function SignUp({ onBack, onSuccess }: SignUpProps) {
       console.error('Registration error:', err);
       // Show more specific error messages
       if (err instanceof TypeError && err.message.includes('fetch')) {
-        setError('Cannot connect to server. Please check if the backend is running on http://localhost:3000');
+        setError('Cannot connect to server. Please try again later.');
       } else if (err instanceof Error) {
         setError(`Error: ${err.message}`);
       } else {
